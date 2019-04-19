@@ -1,4 +1,7 @@
 import torch
+import watch
+import listen
+
 from torch.nn.utils.rnn import pad_sequence
 
 from LRWDataset import LRWDataset
@@ -23,13 +26,37 @@ if __name__ == '__main__':
     dataset = LRWDataset(root_dir, dev_dir + 'dev.csv', is_dev=True)
     batch_size = 4
 
+    watch_model = watch.get_model()
+    listen_model = listen.get_model()
+    spell_model = spell.get_model()
+
     dataloader = DataLoader(dataset,
                             collate_fn=collate_data_streams,
                             batch_size=batch_size,
                             drop_last=True)
 
+    watch_param = watch.get_parameters()
+    listen_param = listen.get_parameters()
+    spell_param = spell.get_parameters()
+
+    tot_param = list(watch_param) + list(listen_param) + list(spell_param)
+    optimizer = torch.optim.sgd(tot_param, lr=0.01)
+    criterion = torch.nn.CrossEntropyLoss()
+
     for mp4, mp3, txt in dataloader:
-        print(mp4.shape)
+        print(mp4.size())
         print(mp3)
         print(txt)
+        assert False
+
+        video_out, lv1_out, lv2_out, lv3_out = watch_model(mp4)
+        audio_out, la1_out, la2_out, la3_out = listen_model(mp3)
+
+        l1_out = cat(lv1_out, la1_out)
+        l2_out = cat(lv2_out, la2_out)
+        l3_out = cat(lv3_out, la3_out)
+
+        spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
+        loss = criterion(spell_out, txt)
+
         assert False
