@@ -1,7 +1,8 @@
 import torch
 import imageio
 
-from PIL import Image
+import pandas as pd
+import numpy as np
 from torch.utils.data import Dataset
 
 
@@ -10,9 +11,9 @@ class LRWDataset(Dataset):
     COL_MP3 = 'mp3'
     COL_TXT = 'txt'
     
-    def __init__(self, root_dir, clean_files_path, is_train=True):
+    def __init__(self, root_dir, clean_files_path, is_train=True, is_dev=False):
         self.root_dir = root_dir
-        self.df = get_files(root_dir, clean_files_path, is_train)
+        self.df = self._get_files(root_dir, clean_files_path, is_train, is_dev)
         
     def __len__(self):
         return len(self.df)
@@ -25,16 +26,18 @@ class LRWDataset(Dataset):
         reversed_mp4 = self._get_reversed_frames_as_tensors(self.root_dir + mp4)
         
         return reversed_mp4, reversed_mp3, reversed_txt
-    
-    def _get_files(self, root_dir, file_path, is_train = True):
+
+    def _get_files(self, root_dir, file_path, is_train=True, is_dev=False):
         df = pd.read_csv(root_dir + file_path)
+        if is_dev:
+            return df
         if is_train:
             return df[df['is_train'] == 1]
         else:
             return df[df['is_train'] == 0]
     
     def _get_records(self, idx):
-        record = df.iloc[idx]
+        record = self.df.iloc[idx]
         mp4 = record[LRWDataset.COL_MP4]
         mp3 = record[LRWDataset.COL_MP3]
         txt = record[LRWDataset.COL_TXT]
