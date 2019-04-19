@@ -1,6 +1,7 @@
 import torch
 import imageio
-
+from python_speech_features import mfcc, delta, logfbank
+import librosa
 import pandas as pd
 import numpy as np
 from torch.utils.data import Dataset
@@ -63,3 +64,52 @@ class LRWDataset(Dataset):
         frames = torch.from_numpy(imgs)
         rev_frames = torch.flip(frames, [0])
         return rev_frames
+
+    def _get_audio_feat(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
+        if method == 'psf':
+            feat = self._get_audio_feat_psf(mp3_file, dim, window_size, stride)
+        else:
+            feat = self._get_audio_feat_librosa(mp3_file, dim, window_size, stride)
+        mfcc = zip(*feat)
+        mfcc = np.stack([np.array(i) for i in mfcc])
+        cc = np.expand_dims(np.expand_dims(mfcc, axis=0),axis=0)
+        cct = torch.autograd.Variable(torch.from_numpy(cc.astype(float)).float())
+        return cct
+
+    def _get_audio_feat_psf(mp3_file, dim=13, window_size=25, stride=10):
+        sig, rate = librosa.load(mp3_file, sr=None)
+        feat = mfcc(sig, samplerate=rate, numcep=dim, winlen=window_size/1000, winstep=stride/1000)
+        return feat
+
+    def _get_audio_feat_librosa(mp3_file, dim=13, window_size=25, stride=10,
+                               feature='mfcc', cmvn=False, delta=False, delta_delta=False, save_feature=None):
+        y, sr = librosa.load(mp3_file, sr=None)
+        ws = int(sr * 0.001 * window_size)
+        st = int(sr * 0.001 * stride)
+        if feature == 'fbank':  # log-scaled
+            feat = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=dim,
+                                                  n_fft=ws, hop_length=st)
+            feat = np.log(feat + 1e-6)
+        elif feature == 'mfcc':
+            feat = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=dim, n_mels=26,
+                                        n_fft=ws, hop_length=st)
+            feat[0] = librosa.feature.rmse(y, hop_length=st, frame_length=ws)
+
+        else:
+            raise ValueError('Unsupported Acoustic Feature: ' + feature)
+
+        feat = [feat]
+        if delta:
+            feat.append(librosa.feature.delta(feat[0]))
+
+        if delta_delta:
+            feat.append(librosa.feature.delta(feat[0], order=2))
+        feat = np.concatenate(feat, axis=0)
+        if cmvn:
+            feat = (feat - feat.mean(axis=1)[:, np.newaxis]) / (feat.std(axis=1) + 1e-16)[:, np.newaxis]
+        if save_feature is not None:
+            tmp = np.swapaxes(feat, 0, 1).astype('float32')
+            np.save(save_feature, tmp)
+            return len(tmp)
+        else:
+            return np.swapaxes(feat, 0, 1).astype('float32')

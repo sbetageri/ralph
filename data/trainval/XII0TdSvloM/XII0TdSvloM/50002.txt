@@ -1,2 +1,0 @@
-Text:  A WINE LABEL
-Conf:  4
