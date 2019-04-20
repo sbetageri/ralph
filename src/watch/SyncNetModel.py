@@ -8,7 +8,8 @@ def save(model, filename):
 
 
 def load(filename):
-    net = torch.load(filename)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    net = torch.load(filename, map_location=device)
     return net;
 
 
@@ -111,3 +112,6 @@ class S(nn.Module):
         out = mid.view((mid.size()[0], -1));  # N x (ch x 24)
 
         return out;
+
+    def forward(self, x):
+        return self.forward_lip(x)
