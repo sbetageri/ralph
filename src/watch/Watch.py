@@ -19,6 +19,11 @@ class WatchNet:
         @param x: Input tensor
         @return: Features of running input through CNN
         '''
+        # b_size, frames, h, w, channels = x.size()
+        # x = x.view(b_size, channels, frames, h, w)
+        # print(x.size())
+        # test = x[:, : ,4:9]
+        #
         x = self.sync_net.forward(x)
         return x
 
