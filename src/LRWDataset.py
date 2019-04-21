@@ -75,7 +75,7 @@ class LRWDataset(Dataset):
         return frames
 
     def _get_reversed_mp3_as_tensor(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
-        windows = self._get_frames_as_tensors(mp4_file)
+        windows = self._get_mp3_as_tensor(mp3_file)
         rev_windows = torch.flip(windows, [1])
         return rev_windows
 
