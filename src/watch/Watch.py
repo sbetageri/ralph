@@ -25,6 +25,9 @@ class WatchNet:
         # print(x.size())
         # test = x[:, : ,4:9]
         #
+
+        ## THE LINE BELOW IS A TEST LINE!!!
+        x = x[:, :, 4:9, :, :]
         x = self.sync_net.forward(x)
         return x
 
