@@ -31,7 +31,7 @@ def reshape_mp4_tensors(mp4):
 
 
 if __name__ == '__main__':
-    root_dir = '/Users/sri/P/audio-assisted-lip-reading/data/'
+    root_dir = '../data/'
     dev_dir = 'dev/'
     model_path = 'syncnet_v2.model'
     dataset = LRWDataset(root_dir, dev_dir + 'dev.csv', is_dev=True)
