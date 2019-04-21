@@ -20,8 +20,15 @@ def collate_data_streams(batch):
     mp4_pad = pad_sequence(mp4_data, batch_first=True)
     mp3_pad = pad_sequence(mp3_data, batch_first=True)
 
+    mp4_pad = reshape_mp4_tensors(mp4_pad)
     # txt_pad = pad_sequence(txt_data, batch_first=True)
-    return mp4_pad, mp3_data, txt_data # _pad, txt_pad
+    return mp4_pad, mp3_pad, txt_data # _pad, txt_pad
+
+def reshape_mp4_tensors(mp4):
+    b_size, frames, h, w, channels = mp4.size()
+    mp4 = mp4.view(b_size, channels, frames, h, w)
+    return mp4
+
 
 if __name__ == '__main__':
     root_dir = '/Users/sri/P/audio-assisted-lip-reading/data/'
