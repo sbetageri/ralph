@@ -60,13 +60,8 @@ if __name__ == '__main__':
     for mp4, mp3, txt in dataloader:
         print(mp3.size())
         print(mp4.size())
-        b_size, frames, h, w, channels = mp4.size()
-        mp4 = mp4.view(b_size, channels, frames, h, w)
-        print(mp4.size())
-        print(mp4.type())
-        test = mp4[:, : ,4:9]
-        print(test.shape)
-        print(test.type())
+
+        ## Move from CPU to GPU, if needed
         mp4 = mp4.to(device)
 
         # assert False
@@ -80,7 +75,7 @@ if __name__ == '__main__':
         # print(test.shape)
         # print(test.type())
         # print(test)
-        test_out = watch_model.forward(test)
+        test_out = watch_net.forward(mp4)
         print(test_out.size())
 
         # video_out, lv1_out, lv2_out, lv3_out = watch_model(mp4)
