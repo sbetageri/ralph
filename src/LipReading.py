@@ -2,6 +2,8 @@ import torch
 import watch
 import listen
 
+from watch import Watch
+
 from torch.nn.utils.rnn import pad_sequence
 
 from LRWDataset import LRWDataset
@@ -23,40 +25,50 @@ def collate_data_streams(batch):
 if __name__ == '__main__':
     root_dir = '/Users/sri/P/audio-assisted-lip-reading/data/'
     dev_dir = 'dev/'
+    model_path = 'syncnet_v2.model'
     dataset = LRWDataset(root_dir, dev_dir + 'dev.csv', is_dev=True)
-    batch_size = 4
+    batch_size = 2
 
-    watch_model = watch.get_model()
-    listen_model = listen.get_model()
-    spell_model = spell.get_model()
+    watch_net = Watch.WatchNet(root_dir, model_path)
+
+    watch_model = watch_net.get_model()
+    # listen_model = listen.get_model()
+    # spell_model = spell.get_model()
 
     dataloader = DataLoader(dataset,
                             collate_fn=collate_data_streams,
                             batch_size=batch_size,
                             drop_last=True)
 
-    watch_param = watch.get_parameters()
-    listen_param = listen.get_parameters()
-    spell_param = spell.get_parameters()
+    watch_param = watch_net.get_parameters()
+    # listen_param = listen.get_parameters()
+    # spell_param = spell.get_parameters()
 
-    tot_param = list(watch_param) + list(listen_param) + list(spell_param)
-    optimizer = torch.optim.sgd(tot_param, lr=0.01)
-    criterion = torch.nn.CrossEntropyLoss()
+    # tot_param = list(watch_param) + list(listen_param) + list(spell_param)
+    # optimizer = torch.optim.sgd(tot_param, lr=0.01)
+    # criterion = torch.nn.CrossEntropyLoss()
 
     for mp4, mp3, txt in dataloader:
         print(mp4.size())
-        print(mp3)
-        print(txt)
-        assert False
+        b_size, frames, h, w, channels = mp4.size()
+        mp4 = mp4.view(b_size, channels, frames, h, w)
+        print(mp4.size())
+        print(mp4.type())
+        test = mp4[:, : ,4:9]
+        print(test.shape)
+        print(test.type())
+        # print(test)
+        test_out = watch_model.forward(test)
+        print(test_out.size())
 
-        video_out, lv1_out, lv2_out, lv3_out = watch_model(mp4)
-        audio_out, la1_out, la2_out, la3_out = listen_model(mp3)
+        # video_out, lv1_out, lv2_out, lv3_out = watch_model(mp4)
+        # audio_out, la1_out, la2_out, la3_out = listen_model(mp3)
 
-        l1_out = cat(lv1_out, la1_out)
-        l2_out = cat(lv2_out, la2_out)
-        l3_out = cat(lv3_out, la3_out)
+        # l1_out = cat(lv1_out, la1_out)
+        # l2_out = cat(lv2_out, la2_out)
+        # l3_out = cat(lv3_out, la3_out)
 
-        spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
-        loss = criterion(spell_out, txt)
+        # spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
+        # loss = criterion(spell_out, txt)
 
         assert False

@@ -22,9 +22,9 @@ class LRWDataset(Dataset):
     def __getitem__(self, idx):
         mp4, mp3, txt = self._get_records(idx)
         
-        reversed_mp3 = self._get_reversed_mp3_as_tensor(self.root_dir + mp3)
-        reversed_txt = self._get_reversed_txt_as_tensor(self.root_dir + txt)
-        reversed_mp4 = self._get_reversed_frames_as_tensors(self.root_dir + mp4)
+        reversed_mp3 = self._get_mp3_as_tensor(self.root_dir + mp3)
+        reversed_txt = self._get_txt_as_tensor(self.root_dir + txt)
+        reversed_mp4 = self._get_frames_as_tensors(self.root_dir + mp4)
         
         return reversed_mp4, reversed_mp3, reversed_txt
 
@@ -44,14 +44,25 @@ class LRWDataset(Dataset):
         txt = record[LRWDataset.COL_TXT]
         
         return mp4, mp3, txt
-    
-    def _get_reversed_mp3_as_tensor(self, mp3_path):
-        return mp3_path
-    
-    def _get_reversed_txt_as_tensor(self, txt_path):
-        return txt_path
+
+    def _get_reversed_txt_as_tensor(self, txt_file):
+        ascii = self._get_txt_as_tensor(txt_file)
+        rev_ascii = torch.flip(ascii, [0])
+        return rev_ascii
+
+    def _get_txt_as_tensor(self, txt_file):
+        with open(txt_file, 'r') as f:
+             content = f.readline()
+        ascii = np.array([ord(c) - 32 for c in content.replace('Text:', '').strip()])
+        ascii = torch.autograd.Variable(torch.from_numpy(ascii.astype(int)).int())
+        return ascii
     
     def _get_reversed_frames_as_tensors(self, mp4_file):
+        frames = self._get_frames_as_tensors(mp4_file)
+        rev_frames = torch.flip(frames, [0])
+        return rev_frames
+
+    def _get_frames_as_tensors(self, mp4_file):
         reader = imageio.get_reader(mp4_file)
         imgs = np.array(reader.get_data(0))
         imgs = imgs.reshape(1, *imgs.shape)
@@ -61,19 +72,28 @@ class LRWDataset(Dataset):
             frame = frame.reshape(1, *frame.shape)
             imgs = np.vstack((imgs, frame))
         frames = torch.from_numpy(imgs)
+<<<<<<< HEAD
         rev_frames = torch.flip(frames, [0])
         rev_frames = rev_frames.float()
         return rev_frames
+=======
+        return frames
 
-    def _get_audio_feat(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
+    def _get_reversed_mp3_as_tensor(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
+        windows = self._get_frames_as_tensors(mp4_file)
+        rev_windows = torch.flip(windows, [1])
+        return rev_windows
+>>>>>>> 0e7b2ae230bfcd74bd5350bbc653b3bddcaabcae
+
+    def _get_mp3_as_tensor(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
         if method == 'psf':
             feat = self._get_audio_feat_psf(mp3_file, dim, window_size, stride)
         else:
             feat = self._get_audio_feat_librosa(mp3_file, dim, window_size, stride)
         mfcc = zip(*feat)
         mfcc = np.stack([np.array(i) for i in mfcc])
-        cc = np.expand_dims(np.expand_dims(mfcc, axis=0),axis=0)
-        cct = torch.autograd.Variable(torch.from_numpy(cc.astype(float)).float())
+        #cc = np.expand_dims(np.expand_dims(mfcc, axis=0),axis=0)
+        cct = torch.autograd.Variable(torch.from_numpy(mfcc.astype(float)).float())
         return cct
 
     def _get_audio_feat_psf(mp3_file, dim=13, window_size=25, stride=10):
