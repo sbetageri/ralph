@@ -27,9 +27,10 @@ if __name__ == '__main__':
     dev_dir = 'dev/'
     model_path = 'syncnet_v2.model'
     dataset = LRWDataset(root_dir, dev_dir + 'dev.csv', is_dev=True)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     batch_size = 2
 
-    watch_net = Watch.WatchNet(root_dir, model_path)
+    watch_net = Watch.WatchNet(root_dir, model_path, device)
 
     watch_model = watch_net.get_model()
     # listen_model = listen.get_model()
@@ -57,6 +58,7 @@ if __name__ == '__main__':
         test = mp4[:, : ,4:9]
         print(test.shape)
         print(test.type())
+        mp4 = mp4.to(device)
         # print(test)
         test_out = watch_model.forward(test)
         print(test_out.size())

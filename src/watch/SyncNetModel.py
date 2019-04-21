@@ -7,8 +7,7 @@ def save(model, filename):
         print("%s saved." % filename);
 
 
-def load(filename):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+def load(filename, device):
     net = torch.load(filename, map_location=device)
     return net;
 

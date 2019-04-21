@@ -1,7 +1,7 @@
 import watch.SyncNetModel as SNet
 
 class WatchNet:
-    def __init__(self, root_dir, model_path):
+    def __init__(self, root_dir, model_path, device):
         '''
 
         @param root_dir: Root dir of the entire project
@@ -10,7 +10,7 @@ class WatchNet:
         self.root_dir = root_dir
         self.model_path = model_path
         self.sync_net = SNet.S()
-        net = SNet.load(self.root_dir + self.model_path)
+        net = SNet.load(self.root_dir + self.model_path, device)
         self.sync_net.load_state_dict(net)
 
     def forward(self, x):
