@@ -72,18 +72,12 @@ class LRWDataset(Dataset):
             frame = frame.reshape(1, *frame.shape)
             imgs = np.vstack((imgs, frame))
         frames = torch.from_numpy(imgs)
-<<<<<<< HEAD
-        rev_frames = torch.flip(frames, [0])
-        rev_frames = rev_frames.float()
-        return rev_frames
-=======
         return frames
 
     def _get_reversed_mp3_as_tensor(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
         windows = self._get_frames_as_tensors(mp4_file)
         rev_windows = torch.flip(windows, [1])
         return rev_windows
->>>>>>> 0e7b2ae230bfcd74bd5350bbc653b3bddcaabcae
 
     def _get_mp3_as_tensor(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
         if method == 'psf':
