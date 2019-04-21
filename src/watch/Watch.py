@@ -12,6 +12,7 @@ class WatchNet:
         self.sync_net = SNet.S()
         net = SNet.load(self.root_dir + self.model_path, device)
         self.sync_net.load_state_dict(net)
+        self.sync_net = self.sync_net.to(device)
 
     def forward(self, x):
         '''
@@ -28,6 +29,9 @@ class WatchNet:
         return x
 
     def get_model(self):
+        ## TODO
+        ## Build LSTM Model here
+        ## Add CNN to the same model
         return self.sync_net
 
     def get_parameters(self):
