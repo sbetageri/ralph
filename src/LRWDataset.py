@@ -90,12 +90,12 @@ class LRWDataset(Dataset):
         cct = torch.autograd.Variable(torch.from_numpy(mfcc.astype(float)).float())
         return cct
 
-    def _get_audio_feat_psf(mp3_file, dim=13, window_size=25, stride=10):
+    def _get_audio_feat_psf(self, mp3_file, dim=13, window_size=25, stride=10):
         sig, rate = librosa.load(mp3_file, sr=None)
         feat = mfcc(sig, samplerate=rate, numcep=dim, winlen=window_size/1000, winstep=stride/1000)
         return feat
 
-    def _get_audio_feat_librosa(mp3_file, dim=13, window_size=25, stride=10,
+    def _get_audio_feat_librosa(self, mp3_file, dim=13, window_size=25, stride=10,
                                feature='mfcc', cmvn=False, delta=False, delta_delta=False, save_feature=None):
         y, sr = librosa.load(mp3_file, sr=None)
         ws = int(sr * 0.001 * window_size)
