@@ -15,10 +15,11 @@ def collate_data_streams(batch):
     txt_data = []
     for i in range(len(batch)):
         mp4_data.append(batch[i][0])
-        mp3_data.append(batch[i][1])
+        mp3_data.append(batch[i][1].transpose(0, 1))
         txt_data.append(batch[i][2])
     mp4_pad = pad_sequence(mp4_data, batch_first=True)
-    # mp3_pad = pad_sequence(mp3_data, batch_first=True)
+    mp3_pad = pad_sequence(mp3_data, batch_first=True)
+
     # txt_pad = pad_sequence(txt_data, batch_first=True)
     return mp4_pad, mp3_data, txt_data # _pad, txt_pad
 
@@ -50,6 +51,7 @@ if __name__ == '__main__':
     # criterion = torch.nn.CrossEntropyLoss()
 
     for mp4, mp3, txt in dataloader:
+        print(mp3.size())
         print(mp4.size())
         b_size, frames, h, w, channels = mp4.size()
         mp4 = mp4.view(b_size, channels, frames, h, w)
@@ -59,6 +61,17 @@ if __name__ == '__main__':
         print(test.shape)
         print(test.type())
         mp4 = mp4.to(device)
+
+        # assert False
+
+        # print(mp4.size())
+        # b_size, frames, h, w, channels = mp4.size()
+        # mp4 = mp4.view(b_size, channels, frames, h, w)
+        # print(mp4.size())
+        # print(mp4.type())
+        # test = mp4[:, : ,4:9]
+        # print(test.shape)
+        # print(test.type())
         # print(test)
         test_out = watch_model.forward(test)
         print(test_out.size())
