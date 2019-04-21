@@ -53,7 +53,6 @@ class LRWDataset(Dataset):
     
     def _get_reversed_frames_as_tensors(self, mp4_file):
         reader = imageio.get_reader(mp4_file)
-        reader = imageio.get_reader(mp4_file)
         imgs = np.array(reader.get_data(0))
         imgs = imgs.reshape(1, *imgs.shape)
         count = reader.count_frames()
@@ -63,6 +62,7 @@ class LRWDataset(Dataset):
             imgs = np.vstack((imgs, frame))
         frames = torch.from_numpy(imgs)
         rev_frames = torch.flip(frames, [0])
+        rev_frames = rev_frames.float()
         return rev_frames
 
     def _get_audio_feat(self, mp3_file, dim=13, window_size=25, stride=10, method='psf'):
