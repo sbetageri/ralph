@@ -54,6 +54,8 @@ class LRWDataset(Dataset):
         with open(txt_file, 'r') as f:
              content = f.readline()
         ascii = np.array([ord(c) - 32 for c in content.replace('Text:', '').strip()])
+        ascii = np.append(ascii, [-2])
+        ascii = np.insert(ascii, 0, [-1])
         ascii = torch.autograd.Variable(torch.from_numpy(ascii.astype(int)).int())
         return ascii
     
@@ -87,8 +89,9 @@ class LRWDataset(Dataset):
             feat = self._get_audio_feat_librosa(mp3_file, dim, window_size, stride)
         mfcc = zip(*feat)
         mfcc = np.stack([np.array(i) for i in mfcc])
-        #cc = np.expand_dims(np.expand_dims(mfcc, axis=0),axis=0)
-        cct = torch.autograd.Variable(torch.from_numpy(mfcc.astype(float)).float())
+        cc = np.expand_dims(mfcc, axis=0)
+        # cc = np.expand_dims(np.expand_dims(mfcc, axis=0),axis=0)
+        cct = torch.autograd.Variable(torch.from_numpy(cc.astype(float)).float())
         return cct
 
     def _get_audio_feat_psf(self, mp3_file, dim=13, window_size=25, stride=10):
