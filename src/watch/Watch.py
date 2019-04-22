@@ -1,3 +1,5 @@
+import torch
+import torch.nn as nn
 import watch.SyncNetModel as SNet
 
 class WatchNet:
@@ -26,8 +28,11 @@ class WatchNet:
         # test = x[:, : ,4:9]
         #
 
-        ## THE LINE BELOW IS A TEST LINE!!!
-        x = x[:, :, 4:9, :, :]
+        num_channels = x.size(2)
+        for i in range(num_channels - 5 + 1):
+            feat = x[:, :, i:i+5, :, :]
+            feat = self.sync_net.forward(feat)
+            
         x = self.sync_net.forward(x)
         return x
 
