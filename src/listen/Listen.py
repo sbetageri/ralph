@@ -1,23 +1,13 @@
-import watch.SyncNetModel as SNet
+import torch
+import torch.nn as nn
 
-class Listen:
-    def __init__(self, root_dir, model_path):
-        '''
-
-        @param root_dir: Root dir of the entire proj
-        @param model_path: Path to the model, relative to the root dir
-        '''
-        self.root_dir = root_dir
-        self.model_path = model_path
-        self.sync_net = SNet.S()
-        net = SNet.load(self.root_dir + self.model_path)
-        self.sync_net.load_state_dict(net)
+class ListenNet:
+    def __init__(self):
+        self.lstm = nn.LSTM(input_size=13, hidden_size=256, num_layers=3)
 
     def forward(self, x):
-        '''
+        lstm_out, (hidden, carry)= self.lstm(x)
+        return lstm_out, hidden
 
-        @param x: Input tensor
-        @return: Features of running input through CNN
-        '''
-        x = self.sync_net.forward_aud(x)
-        return x
+    def get_parameters(self):
+        return self.lstm.parameters()
