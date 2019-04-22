@@ -58,8 +58,6 @@ if __name__ == '__main__':
     # criterion = torch.nn.CrossEntropyLoss()
 
     for mp4, mp3, txt in dataloader:
-        print(mp3.size())
-        print(mp4.size())
 
         ## Move from CPU to GPU, if needed
         mp4 = mp4.to(device)
