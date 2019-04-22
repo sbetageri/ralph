@@ -15,26 +15,27 @@ class WatchNet:
         net = SNet.load(self.root_dir + self.model_path, device)
         self.sync_net.load_state_dict(net)
         self.sync_net = self.sync_net.to(device)
+        self.lstm = nn.LSTM(input_size=1024, hidden_size=256, num_layers=3)
 
     def forward(self, x):
         '''
 
         @param x: Input tensor
-        @return: Features of running input through CNN
+        @return: Stacked outputs from LSTM and the final hidden state
         '''
-        # b_size, frames, h, w, channels = x.size()
-        # x = x.view(b_size, channels, frames, h, w)
-        # print(x.size())
-        # test = x[:, : ,4:9]
-        #
 
         num_channels = x.size(2)
+        output_states = []
         for i in range(num_channels - 5 + 1):
             feat = x[:, :, i:i+5, :, :]
             feat = self.sync_net.forward(feat)
-            
-        x = self.sync_net.forward(x)
-        return x
+            feat = feat.view(1, *feat.size())
+            lstm_out, (hidden, carry) = self.lstm(feat)
+            output_states.append(lstm_out)
+
+        output_state = torch.stack(output_states)
+
+        return output_state, hidden
 
     def get_model(self):
         ## TODO
