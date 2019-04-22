@@ -27,11 +27,10 @@ class WatchNet:
         num_channels = x.size(2)
         batch_size = x.size(0)
         feats = []
-        
+
         for i in range(num_channels - 5 + 1):
             feat = x[:, :, i:i+5, :, :]
             feat = self.sync_net.forward(feat)
-            print(feat.size())
             feat = feat.view(batch_size, 1, -1)
             feats.append(feat)
 
