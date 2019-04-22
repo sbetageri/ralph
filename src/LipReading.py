@@ -62,26 +62,10 @@ if __name__ == '__main__':
         ## Move from CPU to GPU, if needed
         mp4 = mp4.to(device)
 
-        # assert False
-
-        # print(mp4.size())
-        # b_size, frames, h, w, channels = mp4.size()
-        # mp4 = mp4.view(b_size, channels, frames, h, w)
-        # print(mp4.size())
-        # print(mp4.type())
-        # test = mp4[:, : ,4:9]
-        # print(test.shape)
-        # print(test.type())
-        # print(test)
-        test_out = watch_net.forward(mp4)
-        print(test_out.size())
-
-        # video_out, lv1_out, lv2_out, lv3_out = watch_model(mp4)
+        video_out, video_states = watch_net.forward(mp4)
+        print(video_out.size())
+        print(video_states.size())
         # audio_out, la1_out, la2_out, la3_out = listen_model(mp3)
-
-        # l1_out = cat(lv1_out, la1_out)
-        # l2_out = cat(lv2_out, la2_out)
-        # l3_out = cat(lv3_out, la3_out)
 
         # spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
         # loss = criterion(spell_out, txt)
