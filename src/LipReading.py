@@ -1,8 +1,8 @@
 import torch
-import watch
 import listen
 
 from watch import Watch
+from listen import Listen
 
 from torch.nn.utils.rnn import pad_sequence
 
@@ -39,8 +39,8 @@ if __name__ == '__main__':
     batch_size = 2
 
     watch_net = Watch.WatchNet(root_dir, model_path, device)
+    listen_net = Listen.ListenNet(device)
 
-    watch_model = watch_net.get_model()
     # listen_model = listen.get_model()
     # spell_model = spell.get_model()
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
                             drop_last=True)
 
     watch_param = watch_net.get_parameters()
-    # listen_param = listen.get_parameters()
+    listen_param = listen_net.get_parameters()
     # spell_param = spell.get_parameters()
 
     # tot_param = list(watch_param) + list(listen_param) + list(spell_param)
@@ -61,10 +61,12 @@ if __name__ == '__main__':
 
         ## Move from CPU to GPU, if needed
         mp4 = mp4.to(device)
+        mp3 = mp3.to(device)
 
         video_out, video_states = watch_net.forward(mp4)
-        print(video_out.size())
-        print(video_states.size())
+        audio_out, audio_states = listen_net.forward(mp3)
+        # print(video_out.size())
+        # print(video_states.size())
         # audio_out, la1_out, la2_out, la3_out = listen_model(mp3)
 
         # spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
