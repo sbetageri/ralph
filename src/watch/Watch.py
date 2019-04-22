@@ -25,15 +25,18 @@ class WatchNet:
         '''
 
         num_channels = x.size(2)
-        output_states = []
+        batch_size = x.size(0)
+        feats = []
+        
         for i in range(num_channels - 5 + 1):
             feat = x[:, :, i:i+5, :, :]
             feat = self.sync_net.forward(feat)
-            feat = feat.view(1, *feat.size())
-            lstm_out, (hidden, carry) = self.lstm(feat)
-            output_states.append(lstm_out)
+            print(feat.size())
+            feat = feat.view(batch_size, 1, -1)
+            feats.append(feat)
 
-        output_state = torch.stack(output_states)
+        feats = torch.cat(feats, dim=1)
+        output_state, (hidden, carry) = self.lstm(feats)
 
         return output_state, hidden
 
