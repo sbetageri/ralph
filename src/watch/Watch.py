@@ -16,6 +16,7 @@ class WatchNet:
         self.sync_net.load_state_dict(net)
         self.sync_net = self.sync_net.to(device)
         self.lstm = nn.LSTM(input_size=1024, hidden_size=256, num_layers=3)
+        self.lstm = self.lstm.to(device)
 
     def forward(self, x):
         '''
