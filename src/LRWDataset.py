@@ -92,6 +92,7 @@ class LRWDataset(Dataset):
         cc = np.expand_dims(mfcc, axis=0)
         # cc = np.expand_dims(np.expand_dims(mfcc, axis=0),axis=0)
         cct = torch.autograd.Variable(torch.from_numpy(cc.astype(float)).float())
+        cct = cct.view(13, -1)
         return cct
 
     def _get_audio_feat_psf(self, mp3_file, dim=13, window_size=25, stride=10):
