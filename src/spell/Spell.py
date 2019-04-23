@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from attention import Attention
+
 class SpellNet(nn.Module):
 	def __init__(self, num_layers, hidden_size, output_size):
 		super(SpellNet, self).__init__()
@@ -10,7 +12,7 @@ class SpellNet(nn.Module):
 
 		self.embedded = nn.Embedding(self.output_size, self.hidden_size)
 		self.lstm = nn.LSTM(self.hidden_size * 2, self.hidden_size, self.num_layers, batch_first=True)
-		self.attentionVideo = AttentionNet(hidden_size, hidden_size)
+		self.attentionVideo = Attention.AttentionNet(hidden_size, hidden_size)
 		self.mlp = nn.Sequential(
 			nn.Linear(hidden_size * 2, hidden_size),
 			nn.BatchNorm1d(hidden_size),
