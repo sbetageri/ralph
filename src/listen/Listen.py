@@ -9,7 +9,7 @@ class ListenNet(nn.Module):
 
     def forward(self, x):
         lstm_out, (hidden, carry)= self.lstm(x)
-        return lstm_out, hidden
+        return lstm_out, hidden[:, -1]
 
     def get_parameters(self):
         return self.lstm.parameters()
