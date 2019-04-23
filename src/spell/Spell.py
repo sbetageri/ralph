@@ -30,11 +30,14 @@ class SpellNet(nn.Module):
         self.attentionAudio = self.attentionAudio.to(device)
         self.mlp = self.mlp.to(device)
 
-	def forward(self, input, hidden_state, cell_state, watch_outputs, context):
-		input = self.embedded(input)
-		concatenated = torch.cat([input, context], dim=2)
-		output, (hidden_state, cell_state) = self.lstm(concatenated, (hidden_state, cell_state))
-		context = self.attentionVideo(hidden_state[-1], watch_outputs)
-		output = self.mlp(torch.cat([output, context], dim=2).squeeze(1)).unsqueeze(1)
+    def forward(self, input, hidden_state, cell_state, watch_outputs, listen_outputs):
+        input = self.embedded(input)
+        context = torch.zeros_like(input)
+        concatenated = torch.cat([input, context], dim=1)
+        output, (hidden_state, cell_state) = self.lstm(concatenated, (hidden_state, cell_state))
+        video_context = self.attentionVideo(hidden_state[-1], watch_outputs)
+        audio_context = self.attentionVideo(hidden_state[-1], listen_outputs)
+        combined_context = torch.cat([output, video_context, audio_context], dim=1)
+        output = self.mlp(combined_context).unsqueeze(1)
 
-		return output, hidden_state, cell_state, context
+        return output, hidden_state, cell_state, context
