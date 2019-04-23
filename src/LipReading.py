@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 import Levenshtein as Lev
 
 SPELL_LAYERS = 3
-SPELL_HIDDEN = 512
+SPELL_HIDDEN = 256
 SPELL_OUTPUT = 40
 
 def collate_data_streams(batch):
@@ -29,6 +29,7 @@ def collate_data_streams(batch):
 
     mp4_pad = reshape_mp4_tensors(mp4_pad)
     txt_pad = pad_sequence(txt_data, batch_first=True, padding_value=38.0)
+    txt_pad = txt_pad.long()
     return mp4_pad, mp3_pad, txt_pad# _pad, txt_pad
 
 def reshape_mp4_tensors(mp4):
@@ -47,7 +48,7 @@ if __name__ == '__main__':
 
     watch_net = Watch.WatchNet(root_dir, model_path, device)
     listen_net = Listen.ListenNet(device)
-    # spell_net = Spell.SpellNet()
+    spell_net = Spell.SpellNet(SPELL_LAYERS, SPELL_HIDDEN, SPELL_OUTPUT, device)
 
     # listen_model = listen.get_model()
     # spell_model = spell.get_model()
@@ -59,7 +60,7 @@ if __name__ == '__main__':
 
     watch_param = watch_net.parameters()
     listen_param = listen_net.parameters()
-    # spell_param = spell_net.get_parameters()
+    spell_param = spell_net.parameters()
 
     # tot_param = list(watch_param) + list(listen_param) + list(spell_param)
     # optimizer = torch.optim.sgd(tot_param, lr=0.01)
@@ -72,22 +73,22 @@ if __name__ == '__main__':
         mp3 = mp3.to(device)
         txt = txt.to(device)
 
-        print(mp4.size())
-        print(mp3.size())
+        video_out, video_hidden = watch_net.forward(mp4)
+        audio_out, audio_hidden = listen_net.forward(mp3)
 
-        video_out, video_states = watch_net.forward(mp4)
-        audio_out, audio_states = listen_net.forward(mp3)
-        print(video_out.size())
-        print(video_states.size())
+        video_hidden = video_hidden.view(1, *video_hidden.size())
+        audio_hidden = audio_hidden.view(1, *audio_hidden.size())
 
-        print(audio_out.size())
-        print(audio_states.size())
+        av_state = torch.cat((video_hidden, audio_hidden))
 
-        av_state = torch.cat((video_states, audio_states), dim=1)
-        print(av_state.size())
+        # Reshaped this way specifically.
+        ## NEED TO KEEP BATCH_SIZE = 2
+        ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        av_state = av_state.view(3, 2, -1)
 
+        cell_state = torch.zeros_like(av_state).to(device)
+        out = spell_net.forward(txt, av_state, cell_state, video_out, audio_out)
         assert False
-        # audio_out, la1_out, la2_out, la3_out = listen_model(mp3)
 
         # spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
         # loss = criterion(spell_out, txt)
