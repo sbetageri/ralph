@@ -65,12 +65,12 @@ class LRWDataset(Dataset):
 			tmp = [self.index_of_str[i] for i in
 			       content.split(':')[1].replace(' ', '').rstrip('\n')] + [self.index_of_str['<eos>']]
 
-			if len(tmp) < txtMaxLen:
-				tmp += [self.index_of_str['<pad>'] for _ in range(txtMaxLen - len(tmp))]
+			# if len(tmp) < txtMaxLen:
+			# 	tmp += [self.index_of_str['<pad>'] for _ in range(txtMaxLen - len(tmp))]
 
-			else:
-				print(len(tmp))
-				raise Exception('too short txt max length')
+			# else:
+			# 	print(len(tmp))
+			# 	raise Exception('too short txt max length')
 
 		return torch.Tensor(tmp)
 
