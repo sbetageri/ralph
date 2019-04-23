@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 
-class ListenNet:
+class ListenNet(nn.Module):
     def __init__(self, device):
+        super(ListenNet, self).__init__()
         self.lstm = nn.LSTM(input_size=13, hidden_size=256, num_layers=3)
         self.lstm = self.lstm.to(device)
 

@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 
-class SpellNet:
+class SpellNet(nn.Module):
 	def __init__(self, num_layers, hidden_size, output_size):
+		super(SpellNet, self).__init__()
 		self.hidden_size = hidden_size
 		self.output_size = output_size
 		self.num_layers = num_layers

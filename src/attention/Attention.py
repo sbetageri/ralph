@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-class AttentionNet: #(nn.Module)
+class AttentionNet(nn.Module):
 	def __init__(self, hidden_size, annotation_size):
+		super(AttentionNet, self).__init__()
 		self.dense = nn.Sequential(
 			nn.Linear(hidden_size + annotation_size, hidden_size),
 			nn.Tanh(),

@@ -2,13 +2,14 @@ import torch
 import torch.nn as nn
 import watch.SyncNetModel as SNet
 
-class WatchNet: #(nn.Module)
+class WatchNet(nn.Module):
     def __init__(self, root_dir, model_path, device):
         '''
 
         @param root_dir: Root dir of the entire project
         @param model_path: Path to the model, relative to the root dir
         '''
+        super(WatchNet, self).__init__()
         self.root_dir = root_dir
         self.model_path = model_path
         self.sync_net = SNet.S()
