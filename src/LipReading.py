@@ -43,7 +43,7 @@ if __name__ == '__main__':
     model_path = 'syncnet_v2.model'
     dataset = LRWDataset(root_dir, dev_dir + 'dev.csv', is_dev=True)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    batch_size = 8
+    batch_size = 2
 
     watch_net = Watch.WatchNet(root_dir, model_path, device)
     listen_net = Listen.ListenNet(device)
@@ -72,10 +72,21 @@ if __name__ == '__main__':
         mp3 = mp3.to(device)
         txt = txt.to(device)
 
+        print(mp4.size())
+        print(mp3.size())
+
         video_out, video_states = watch_net.forward(mp4)
         audio_out, audio_states = listen_net.forward(mp3)
-        # print(video_out.size())
-        # print(video_states.size())
+        print(video_out.size())
+        print(video_states.size())
+
+        print(audio_out.size())
+        print(audio_states.size())
+
+        av_state = torch.cat((video_states, audio_states), dim=1)
+        print(av_state.size())
+
+        assert False
         # audio_out, la1_out, la2_out, la3_out = listen_model(mp3)
 
         # spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
