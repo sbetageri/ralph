@@ -3,25 +3,32 @@ import torch.nn as nn
 
 from attention import Attention
 
-class SpellNet(nn.Module):
-	def __init__(self, num_layers, hidden_size, output_size):
-		super(SpellNet, self).__init__()
-		self.hidden_size = hidden_size
-		self.output_size = output_size
-		self.num_layers = num_layers
 
-		self.embedded = nn.Embedding(self.output_size, self.hidden_size)
-		self.lstm = nn.LSTM(self.hidden_size * 2, self.hidden_size, self.num_layers, batch_first=True)
-		self.attentionVideo = Attention.AttentionNet(hidden_size, hidden_size)
-		self.mlp = nn.Sequential(
-			nn.Linear(hidden_size * 2, hidden_size),
-			nn.BatchNorm1d(hidden_size),
-			nn.ReLU(),
-			nn.Linear(hidden_size, 256),
-			nn.BatchNorm1d(256),
-			nn.ReLU(),
-			nn.Linear(256, output_size)
-		)
+class SpellNet(nn.Module):
+    def __init__(self, num_layers, hidden_size, output_size, device):
+        super(SpellNet, self).__init__()
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.num_layers = num_layers
+
+        self.embedded = nn.Embedding(self.output_size, self.hidden_size)
+        self.lstm = nn.LSTM(self.hidden_size, self.hidden_size, self.num_layers, batch_first=True)
+        self.attentionVideo = Attention.AttentionNet(hidden_size, hidden_size)
+        self.attentionAudio = Attention.AttentionNet(hidden_size, hidden_size)
+        self.mlp = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, 256),
+            nn.ReLU(),
+            nn.Linear(256, output_size)
+        )
+
+        ## Move to Device
+        self.embedded = self.embedded.to(device)
+        self.lstm = self.lstm.to(device)
+        self.attentionVideo = self.attentionVideo.to(device)
+        self.attentionAudio = self.attentionAudio.to(device)
+        self.mlp = self.mlp.to(device)
 
 	def forward(self, input, hidden_state, cell_state, watch_outputs, context):
 		input = self.embedded(input)
