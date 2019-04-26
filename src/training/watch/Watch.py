@@ -39,7 +39,7 @@ class WatchNet(nn.Module):
         feats = torch.cat(feats, dim=1)
         output_state, (hidden, carry) = self.lstm(feats)
 
-        return output_state, hidden
+        return output_state, hidden[:, -1]
 
     def get_model(self):
         ## TODO
