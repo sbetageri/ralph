@@ -1,5 +1,5 @@
 import torch
-import listen
+import torch.optim
 
 from watch import Watch
 from listen import Listen
@@ -10,6 +10,8 @@ from torch.nn.utils.rnn import pad_sequence
 
 from LRWDataset import LRWDataset
 from torch.utils.data import DataLoader
+
+from tqdm import tqdm
 import Levenshtein as Lev
 
 SPELL_LAYERS = 3
@@ -37,6 +39,12 @@ def reshape_mp4_tensors(mp4):
     mp4 = mp4.view(b_size, channels, frames, h, w)
     return mp4
 
+def pad_text(txt, device):
+    diff = 40 - txt.size(1)
+    z = torch.zeros((batch_size, diff)).long()
+    z = z.to(device)
+    return torch.cat((txt, z), dim=1)
+
 
 if __name__ == '__main__':
     root_dir = '../data/'
@@ -62,35 +70,48 @@ if __name__ == '__main__':
     listen_param = listen_net.parameters()
     spell_param = spell_net.parameters()
 
-    # tot_param = list(watch_param) + list(listen_param) + list(spell_param)
-    # optimizer = torch.optim.sgd(tot_param, lr=0.01)
+    tot_param = list(watch_param) + list(listen_param) + list(spell_param)
+    optimizer = torch.optim.Adam(tot_param, lr=0.1, amsgrad=True)
+    criterion = torch.nn.MSELoss()
     # criterion = torch.nn.CrossEntropyLoss()
 
-    for mp4, mp3, txt in dataloader:
+    tot_loss = 0
+    for e in range(10):
+        running_loss = 0
+        for mp4, mp3, txt in tqdm(dataloader):
 
-        ## Move from CPU to GPU, if needed
-        mp4 = mp4.to(device)
-        mp3 = mp3.to(device)
-        txt = txt.to(device)
+            ## Move from CPU to GPU, if needed
+            optimizer.zero_grad()
+            mp4 = mp4.to(device)
+            mp3 = mp3.to(device)
+            txt = txt.to(device)
 
-        video_out, video_hidden = watch_net.forward(mp4)
-        audio_out, audio_hidden = listen_net.forward(mp3)
+            video_out, video_hidden = watch_net.forward(mp4)
+            audio_out, audio_hidden = listen_net.forward(mp3)
 
-        video_hidden = video_hidden.view(1, *video_hidden.size())
-        audio_hidden = audio_hidden.view(1, *audio_hidden.size())
+            video_hidden = video_hidden.view(1, *video_hidden.size())
+            audio_hidden = audio_hidden.view(1, *audio_hidden.size())
 
-        av_state = torch.cat((video_hidden, audio_hidden))
+            av_state = torch.cat((video_hidden, audio_hidden))
 
-        # Reshaped this way specifically.
-        ## NEED TO KEEP BATCH_SIZE = 2
-        ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        av_state = av_state.view(3, 2, -1)
+            # Reshaped this way specifically.
+            ## NEED TO KEEP BATCH_SIZE = 2
+            ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            av_state = av_state.view(3, 2, -1)
 
-        cell_state = torch.zeros_like(av_state).to(device)
-        out = spell_net.forward(txt, av_state, cell_state, video_out, audio_out)
-        assert False
+            cell_state = torch.zeros_like(av_state).to(device)
+            out = spell_net.forward(txt, av_state, cell_state, video_out, audio_out)
 
-        # spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
-        # loss = criterion(spell_out, txt)
+            # spell_out = spell_model(txt, video_out, audio_out, l1_out, l2_out, l3_out)
+            # loss = criterion(spell_out, txt)
+            t = pad_text(txt.item(), device).float()
+            loss = criterion(out[0], t)
+            optimizer.step()
+            running_loss += loss.item()
+            # txt.expand(batch_size, 40)
+        tot_loss += running_loss / (len(dataloader)) * 4
+    tot_loss /= 10
+    print(tot_loss)
+
 
 
